@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 330" width="840" height="330" font-family="Helvetica, Arial, sans-serif">
+  <title>Topology errors counted by the link–node and link-sequence definitions</title>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#33506b"/>
+    </marker>
+    <marker id="arrowRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#b03030"/>
+    </marker>
+  </defs>
+  <rect width="840" height="330" fill="#ffffff"/>
+
+  <!-- Left panel: link-node connectivity -->
+  <g transform="translate(20,0)">
+    <rect x="0" y="10" width="390" height="300" fill="#f7f9fb" stroke="#c9d3dc"/>
+    <text x="195" y="36" text-anchor="middle" font-size="15" font-weight="bold" fill="#222">Link–node connectivity</text>
+    <text x="195" y="56" text-anchor="middle" font-size="12" fill="#555">tolerance 0.01 m</text>
+
+    <line x1="70" y1="170" x2="200" y2="100" stroke="#33506b" stroke-width="4"/>
+    <line x1="200" y1="100" x2="200" y2="230" stroke="#33506b" stroke-width="4"/>
+    <line x1="70" y1="170" x2="186" y2="222" stroke="#b03030" stroke-width="4"/>
+
+    <circle cx="70" cy="170" r="8" fill="#33506b"/>
+    <circle cx="200" cy="100" r="8" fill="#33506b"/>
+    <circle cx="200" cy="230" r="8" fill="#33506b"/>
+    <circle cx="320" cy="250" r="8" fill="#ffffff" stroke="#b03030" stroke-width="3"/>
+
+    <text x="52" y="160" font-size="12" fill="#222">N1</text>
+    <text x="210" y="96" font-size="12" fill="#222">N2</text>
+    <text x="210" y="244" font-size="12" fill="#222">N3</text>
+    <text x="300" y="240" font-size="12" fill="#b03030">N4</text>
+    <text x="118" y="125" font-size="12" fill="#33506b">L1</text>
+    <text x="208" y="170" font-size="12" fill="#33506b">L3</text>
+    <text x="110" y="214" font-size="12" fill="#b03030">L2</text>
+
+    <text x="20" y="276" font-size="12" fill="#b03030">✗ L2 ends 0.4 m from its endNode N3 (geometry error)</text>
+    <text x="20" y="296" font-size="12" fill="#b03030">✗ N4 is referenced by no link (isolated node)</text>
+  </g>
+
+  <!-- Right panel: link sequence continuity -->
+  <g transform="translate(430,0)">
+    <rect x="0" y="10" width="390" height="300" fill="#f7f9fb" stroke="#c9d3dc"/>
+    <text x="195" y="36" text-anchor="middle" font-size="15" font-weight="bold" fill="#222">Link-sequence continuity</text>
+    <text x="195" y="56" text-anchor="middle" font-size="12" fill="#555">RoadLinkSequence = [L10 (+), L11 (−), L12 (+)]</text>
+
+    <circle cx="40" cy="150" r="8" fill="#33506b"/>
+    <circle cx="150" cy="150" r="8" fill="#33506b"/>
+    <circle cx="260" cy="150" r="8" fill="#33506b"/>
+    <circle cx="360" cy="150" r="8" fill="#33506b"/>
+    <text x="34" y="176" font-size="12" fill="#222">A</text>
+    <text x="144" y="176" font-size="12" fill="#222">B</text>
+    <text x="254" y="176" font-size="12" fill="#222">C</text>
+    <text x="354" y="176" font-size="12" fill="#222">D</text>
+
+    <line x1="48" y1="150" x2="140" y2="150" stroke="#33506b" stroke-width="4" marker-end="url(#arrow)"/>
+    <line x1="252" y1="150" x2="160" y2="150" stroke="#b03030" stroke-width="4" marker-end="url(#arrowRed)"/>
+    <line x1="268" y1="150" x2="350" y2="150" stroke="#33506b" stroke-width="4" marker-end="url(#arrow)"/>
+
+    <text x="80" y="138" font-size="12" fill="#33506b">L10 +</text>
+    <text x="186" y="138" font-size="12" fill="#b03030">L11 −</text>
+    <text x="296" y="138" font-size="12" fill="#33506b">L12 +</text>
+
+    <text x="150" y="110" text-anchor="middle" font-size="18" fill="#b03030">✗</text>
+    <text x="260" y="110" text-anchor="middle" font-size="18" fill="#b03030">✗</text>
+
+    <text x="20" y="226" font-size="12" fill="#222">L11 is stored B→C. Used with direction “−”,</text>
+    <text x="20" y="244" font-size="12" fill="#222">it is traversed C→B.</text>
+    <text x="20" y="270" font-size="12" fill="#b03030">✗ L10 ends at B, but L11 (−) starts at C</text>
+    <text x="20" y="290" font-size="12" fill="#b03030">✗ L11 (−) ends at B, but L12 starts at C</text>
+  </g>
+</svg>
