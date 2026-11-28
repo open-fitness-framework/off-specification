@@ -155,7 +155,7 @@ A core implementation uses one immutable whole snapshot of a data asset, complet
 
 ### 2.2 Optional extensions
 
-The extension identifiers below are provisional and resolve as the OFF namespace followed by extensions/E1 through extensions/E7. A profile, report body or trust policy using extension-dependent semantics MUST list the applicable URI in a `requiredExtensions` array. The request MUST declare the union needed by its profile and policy. Missing declarations are invalid. Unsupported extensions in a profile, request or policy produce an evaluation error with UNSUPPORTED_EXTENSION and result null. An unsupported report extension excludes that report. Informational fields that cannot affect acceptance do not require an extension declaration.
+The extension identifiers below are provisional and resolve as the OFF namespace followed by extensions/E1 through extensions/E9. A profile, report body or trust policy using extension-dependent semantics MUST list the applicable URI in a `requiredExtensions` array. The request MUST declare the union needed by its profile and policy. Missing declarations are invalid. Unsupported extensions in a profile, request or policy produce an evaluation error with UNSUPPORTED_EXTENSION and result null. An unsupported report extension excludes that report. Informational fields that cannot affect acceptance do not require an extension declaration.
 
 | ID  | Optional capability                              | Sections                                                                                |
 | --- | ------------------------------------------------ | --------------------------------------------------------------------------------------- |
@@ -272,7 +272,7 @@ An evaluator MAY operate without downloading the underlying data when the trust 
 | `purpose`                   | Purpose has an absolute id and description.                                         |
 | `requirements`              | Nonempty array of uniquely identified requirements; all mandatory in the core.      |
 | `requiredExtensions`        | Optional nonempty array when extensions are needed; otherwise omit.                 |
-| `acceptance` and `advisory` | E2 only. Omit both in a core profile; see [Section 5.4](#54-core-conjunction-rule). |
+| `acceptance` and `advisory` | E3 only. Omit both in a core profile; see [Section 5.4](#54-core-conjunction-rule). |
 | `classification`            | Optional informational metadata; may identify DQV dimensions/categories.            |
 
 The profile MUST identify its purpose explicitly. The request purpose MUST equal the profile purpose id. A purpose description helps a person select a profile, but has no executable semantics. The profile publisher is responsible for choosing requirements sufficient for its intended purpose. OFF evaluation establishes satisfaction of those requirements, rather than proving that an incomplete profile covers every possible operational risk.
@@ -291,7 +291,7 @@ For example, the condition below requires the defined completeness statistic to 
   "expected": {
     "type": "decimal",
     "value": "0.98",
-    "unit": "https://www.wetransform.to/off/0.3/units/one"
+    "unit": "https://www.open-fitness-framework.org/spec/0.3/units/one"
   }
 }
 ```
@@ -306,9 +306,9 @@ The generic evaluator MUST support `eq`, `ne`, `lt`, `lte`, `gt`, and `gte` with
 | `allowedMethods`          | Optional nonempty list of pinned accepted methods.                                              |
 | `maxAssessmentAgeSeconds` | Optional upper bound measured from `assessment.endedAt`.                                        |
 | `allowedCoverage`         | Core defaults to complete; selecting sampled requires E1.                                       |
-| `evidenceAccess`          | Core defaults to `summary`; `retrievable` requires E3. Replaces the ambiguous field name proof. |
+| `evidenceAccess`          | Core defaults to `summary`; `retrievable` requires E2. Replaces the ambiguous field name proof. |
 
-Profile and local trust constraints apply together: issuer and coverage sets intersect; the smaller maximum age applies. Missing profile constraints add no restriction to local policy. Core policy defaults are complete coverage and summary evidence access. E3 retrievable is stricter than summary. An empty intersection yields no admissible evidence, never weakened acceptance.
+Profile and local trust constraints apply together: issuer and coverage sets intersect; the smaller maximum age applies. Missing profile constraints add no restriction to local policy. Core policy defaults are complete coverage and summary evidence access. E2 retrievable is stricter than summary. An empty intersection yields no admissible evidence, never weakened acceptance.
 
 The same admission criteria MUST apply to favorable and unfavorable values. A profile or implementation MUST NOT discard a negative report simply because a positive report has already been found.
 
@@ -324,7 +324,7 @@ Every requirement is mandatory: FIT requires all to PASS. Any FAIL makes the pro
 
 #### 5.4.1 Extension E3: Composition
 
-In addition to `conjunction`, this extension defines two additional modes. . Every requirement occurs in `acceptance` or `advisory`, never both:
+In addition to `conjunction`, this extension defines two additional modes. Every requirement occurs in `acceptance` or `advisory`, never both:
 
 1. `acceptance` is a requirement reference, nonempty `allOf` array or nonempty `anyOf` array. `allOf` passes if all children pass and fails if any fails; `anyOf` passes if any passes and fails if all fail. Other combinations are unresolved. UNKNOWN and CONFLICT remain distinct in traces. No weighting, negation, quorum or arbitrary executable expression is defined. At JSON level a reference is `{"requirement":"local-id"}`; composition is `{"allOf":[...]}` or `{"anyOf":[...]}`.
 2. `advisory` is an array of requirement IDs. References MUST resolve and arrays MUST be nonempty.
@@ -344,7 +344,7 @@ A core OFF report is a VC 2.0 credential secured under [Section 8](#8-signatures
 | `validFrom`         | Inclusive start of validity.                                        |
 | `validUntil`        | Optional exclusive end of validity.                                 |
 | `credentialSubject` | One OffAssetSnapshot; id equals report body subject.snapshotId.     |
-| `credentialStatus`  | Absent in the core; E4 only.                                        |
+| `credentialStatus`  | Absent in the core; E7 only.                                        |
 
 The report body is `credentialSubject.offReport`. The second `@context` entry is exactly the inline object below; the first is `https://www.w3.org/ns/credentials/v2`. The body is carried as @json so ordinary JSON implementations can process the core. This packaging does not itself generate an EARL or DQV RDF graph. [Section 6.3](#63-earl-assertions-and-dqv-measurements) defines the semantic projection, independently of future RDF serialization tooling. \[[5](#ref-5)\]
 
@@ -374,8 +374,8 @@ The report body contains `specVersion`, `subject`, `scope`, `issuedAt`, `assessm
 | `endedAt`        | Required completion or attempt time, including failed attempts.                                                       |
 | `issuedAt`       | Required time of the issuance of the credential.                                                                      |
 | `tools`          | Required array of tool identities and versions; may be empty for manual assessments.                                  |
-| `startedAt`      | Optional E6 provenance: start time.                                                                                   |
-| `configuration`  | Optional E6 provenance: pinned material configuration. No empty configuration artifact is required by the core.       |
+| `startedAt`      | Optional E4 provenance: start time.                                                                                   |
+| `configuration`  | Optional E4 provenance: pinned material configuration. No empty configuration artifact is required by the core.       |
 
 Automatic and semi-automatic assessments MUST name at least one tool and version. A successful-use claim is defined by its criterion, not a special mode value. The method and definition parameters must capture settings essential to interpretation.
 
@@ -383,7 +383,7 @@ Automatic and semi-automatic assessments MUST name at least one tool and version
 
 #### 6.2.1 Extension E4: Additional Lifespan Information and Assessment Configuration
 
-E4 adds a separately pinned configuration and richer execution history. Under E6, configuration and provenance may align with PROV-O activities, entities and agents. \[[14](#ref-14), [15](#ref-15)\]
+E4 adds a separately pinned configuration and richer execution history. Under E4, configuration and provenance may align with PROV-O activities, entities and agents. \[[14](#ref-14), [15](#ref-15)\]
 
 If E4 `startedAt` is present it must not exceed `endedAt`. `validUntil`, when present, must be later than `validFrom`. Issuer timestamps do not imply a trusted timestamp service.
 
@@ -425,7 +425,7 @@ Each evidence item contains a local id, a pinned `resource`, a retrieval `href`,
 
 The evidence resource digest MUST identify the intended artifact bytes. The href may be a retrieval location different from the resource id. An authenticated mirror or local package may supply identical bytes. URL credentials and expiring bearer tokens SHOULD NOT be embedded in reports; an authorized retrieval layer can provide access separately.
 
-Evidence may include validator output, sampling plans, calibration records, reference comparisons or workflow results. Evidence is optional under core summary acceptance. Required retrieval belongs to Extension E3. A report remains interpretable without parsing an untyped log. Cryptographic proof authenticates a report; supporting assessment evidence substantiates or explains its claims. Neither term implies the other.
+Evidence may include validator output, sampling plans, calibration records, reference comparisons or workflow results. Evidence is optional under core summary acceptance. Required retrieval belongs to Extension E2. A report remains interpretable without parsing an untyped log. Cryptographic proof authenticates a report; supporting assessment evidence substantiates or explains its claims. Neither term implies the other.
 
 ## 7 Assertion definitions and domain semantics
 
@@ -435,7 +435,7 @@ Each pinned definition declares kind test or measurement, immutable identity/ver
 
 The generic evaluator uses exact definition and parameter matching. It MUST NOT infer that two definitions, schemas, purposes, methods, or units are equivalent from similar names. Implementations MUST declare which definitions they understand. Domain plug-ins can implement further definitions, but downloading a definition MUST NOT execute code supplied by that resource.
 
-Sections [7.2](#72-schema-conformity-pattern) and [7.3](#73-completeness-measurement-pattern) give definition patterns (informative examples; the adapter safeguards are normative); their concrete schemas and missing-value conventions are chosen by domain publishers. Core conformance requires the record model and declared definition support, not a universal catalogue of metrics. Sections [7.4](#74-extension-e5-accuracy-and-precision) and [7.5](#75-extension-e6-successful-use-and-attestations) are optional domain extension E7. None of these patterns constitutes a released companion definition.
+Sections [7.2](#72-schema-conformity-pattern) and [7.3](#73-completeness-measurement-pattern) give definition patterns (informative examples; the adapter safeguards are normative); their concrete schemas and missing-value conventions are chosen by domain publishers. Core conformance requires the record model and declared definition support, not a universal catalogue of metrics. Sections [7.4](#74-extension-e5-accuracy-and-precision) and [7.5](#75-extension-e6-successful-use-and-attestations) are optional domain extensions E5 and E6. None of these patterns constitutes a released companion definition.
 
 ### 7.2 Schema conformity pattern
 
@@ -506,7 +506,7 @@ The supported status mechanism is Bitstring Status List 1.0. A status-bearing re
 
 E7 evaluators obtain and authenticate the status-list credential, check its authorized issuer, validity, purpose and index, and evaluate the bit. Status lists use the [Section 8.1](#81-baseline-signature-binding) direct ES256 JWS format but the `BitstringStatusListCredential` payload model. Revoked or suspended reports are inadmissible. Unavailable, stale, invalid or unsupported status is unresolved and never treated as clear.
 
-Under E7, the list contains `validFrom` as publication time and a later `validUntil`, and must be valid at `evaluatedAt`. Both signed publication age and trusted observation age must satisfy the policy’s required `maxStatusAgeSeconds`; observation time cannot be in the future. Fetching an old list today cannot make it fresh. Retain the list and acquisition record; E5 adds portable replay packaging.
+Under E7, the list contains `validFrom` as publication time and a later `validUntil`, and must be valid at `evaluatedAt`. Both signed publication age and trusted observation age must satisfy the policy’s required `maxStatusAgeSeconds`; observation time cannot be in the future. Fetching an old list today cannot make it fresh. Retain the list and acquisition record; E9 adds portable replay packaging.
 
 E7 policies declare `allowNoCredentialStatus`; when false, reports without a status entry are excluded. Core policies permit absent status and decisions record that no revocation channel was checked. Expiry and assessment freshness still apply independently. Credential-status support is not a prerequisite for core conformance.
 
@@ -536,7 +536,7 @@ The evaluator retains the supplied report inventory. Order must not affect the r
 
 For each candidate, verify artifact digest, JWS form, signature, credential structure and issuer-key binding. Check declared extension support, subject, representation, snapshot/digest, scope, timestamps and credential validity. Any failed check excludes the report with a reason.
 
-Apply status checks only under E4; a status-bearing report without supported E4 is excluded.
+Apply status checks only under E7; a status-bearing report without supported E7 is excluded.
 
 The credential validity interval is half-open: `validFrom` is inclusive and `validUntil`, when present, is exclusive. Assessment freshness is calculated as `evaluatedAt` minus `assessment.endedAt` and is accepted when that nonnegative age is less than or equal to the effective maximum. Reissuing yesterday's assessment today does not make the assessment newer. Data acquisition age is a separate property and requires a separate assertion if the purpose depends on it.
 
@@ -565,7 +565,7 @@ Newer evidence does not automatically displace older contrary evidence. The core
 
 ### 10.5 Aggregate the decision
 
-In the core, all requirements are mandatory: all PASS yields FIT; any FAIL yields NOT_FIT; otherwise the result is NOT_ASSESSABLE. Under E5, an otherwise passing root becomes NOT_ASSESSABLE if a required discovery source is incomplete; a failing root remains NOT_FIT. A core submitted-only evaluation has no discovery prerequisites.
+In the core, all requirements are mandatory: all PASS yields FIT; any FAIL yields NOT_FIT; otherwise the result is NOT_ASSESSABLE. Under E9, an otherwise passing root becomes NOT_ASSESSABLE if a required discovery source is incomplete; a failing root remains NOT_FIT. A core submitted-only evaluation has no discovery prerequisites.
 
 A mandatory failure can establish NOT_FIT even if another condition is unknown. All evaluated leaf outcomes, including conflicts, remain visible; an extension must not hide evidence that did not determine the root result.
 
@@ -597,7 +597,7 @@ Reason codes carry machine-readable categories; explanations may add detail. Cor
 | Core observation    | EXECUTION_ERROR, INCONCLUSIVE, NOT_EXECUTED, INAPPLICABLE, INVALID_VALUE, UNIT_MISMATCH, DIGEST_MISMATCH            |
 | Core outcome        | NO_ADMISSIBLE_EVIDENCE, PREDICATE_SATISFIED, PREDICATE_VIOLATED, CONFLICTING_EVIDENCE                               |
 | E1 and E2           | COVERAGE_NOT_ALLOWED; MISSING_EVIDENCE, EVIDENCE_UNAVAILABLE                                                        |
-| E4 and E7           | REVOKED, SUSPENDED, STATUS_UNAVAILABLE, STALE_STATUS, STATUS_REQUIRED; REQUIRED_SOURCE_INCOMPLETE                   |
+| E7 and E9           | REVOKED, SUSPENDED, STATUS_UNAVAILABLE, STALE_STATUS, STATUS_REQUIRED; REQUIRED_SOURCE_INCOMPLETE                   |
 
 A decision MAY be signed for transport or audit. This draft does not define recursive use of a FitnessDecision as an atomic fitness report. An evaluator MUST NOT accept a previous FIT label as a substitute for the underlying requirements unless a future supported assertion definition explicitly specifies that reuse, dependencies, expiration, and cycle handling.
 
@@ -607,7 +607,7 @@ Reports may be published beside assets, linked from catalogs or returned by APIs
 
 Repositories preserve secured bytes and must not rewrite payloads under a signature. They should expose asset, snapshot, definition and issuer metadata. Unsigned catalogue claims of validity or fitness are not OFF reports. Core evaluation only requires directly supplied reports.
 
-Changed assets need a new snapshot binding; changed profiles or policies need new pinned inputs and reevaluation. New evidence can change a decision without rewriting historical decisions. Under E4, status changes may also trigger reevaluation. Automated monitoring and scheduling are outside core conformance.
+Changed assets need a new snapshot binding; changed profiles or policies need new pinned inputs and reevaluation. New evidence can change a decision without rewriting historical decisions. Under E7, status changes may also trigger reevaluation. Automated monitoring and scheduling are outside core conformance.
 
 Optional provenance and domain extensions may record lineage. Lineage alone must not transfer conformity, completeness, accuracy or fitness to a transformed asset. Property-preservation claims require separately defined, supported assertions about the output binding; no such inference is included in the core.
 
@@ -631,11 +631,11 @@ EARL and DQV semantics are normative as profiled in [Section 6.3](#63-earl-asser
 | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
 | EARL 1.0 Schema \[[15](#ref-15)\]                 | Core test assertion semantics, five outcomes and modes. Working Group Note, not a Recommendation. Compact JSON does not itself create RDF triples. |
 | DQV \[[12](#ref-12)\]                             | Core metric/measurement distinction and semantic mapping. Working Group Note. A measurement is not a threshold decision.                           |
-| VC 2.0; VC JOSE/COSE \[[2](#ref-2), [4](#ref-4)\] | Core signed envelope and ES256 binding. Credential status is E4.                                                                                   |
+| VC 2.0; VC JOSE/COSE \[[2](#ref-2), [4](#ref-4)\] | Core signed envelope and ES256 binding. Credential status is E7.                                                                                   |
 | JSON Schema; SHACL \[[11](#ref-11), [6](#ref-6)\] | Optional structural validation tooling and assessment adapters. No engine is mandated; future artifacts must match the prose.                      |
-| DCAT 3 \[[13](#ref-13)\]                          | Optional E5 discovery/catalogue mapping. Catalog labels do not replace immutable binding.                                                          |
-| PROV-O \[[14](#ref-14)\]                          | Optional E6 execution and derivation graphs. Core provenance fields remain sufficient without an RDF graph.                                        |
-| ISO 19157-1 \[[16](#ref-16)\]                     | Optional E7 geospatial measure definitions. No complete ISO crosswalk or mandatory catalogue is claimed.                                           |
+| DCAT 3 \[[13](#ref-13)\]                          | Optional E9 discovery/catalogue mapping. Catalog labels do not replace immutable binding.                                                          |
+| PROV-O \[[14](#ref-14)\]                          | Optional E4 execution and derivation graphs. Core provenance fields remain sufficient without an RDF graph.                                        |
+| ISO 19157-1 \[[16](#ref-16)\]                     | Optional E5 geospatial measure definitions. No complete ISO crosswalk or mandatory catalogue is claimed.                                           |
 | OSTrails FTR \[[17](#ref-17)\]                    | Informative mapping target for metrics, tests, executions and benchmarks; not a core dependency.                                                   |
 
 Domain publishers should reuse established metric identifiers and meanings where they match, including ISO 19157 definitions. Parameterized OFF metrics retain their precise measurement basis and scope; similar names do not establish equivalence. FTR integration should map metrics, tests and executions explicitly rather than treating a benchmark score as an OFF fitness decision.
@@ -678,7 +678,7 @@ Core cases are mandatory for core evaluators. Unless stated otherwise, the case 
 
 Consider a synthetic snapshot of 1000 building records: height is present and `nonnull` for 987 and null for 13. A schema permitting null height may still be satisfied. Schema conformity is therefore a kind test record with earl:passed, while height completeness is a separate kind measurement record with decimal value 0.987.
 
-A core profile requiring conformity eq true and completeness gte 0.98 yields FIT if both records are admitted and no contradictory admitted evidence exists. Changing the threshold to 0.995 yields NOT_FIT without changing the measurement. A successful-use record requires its own E7 definition; making that requirement advisory additionally requires E2.
+A core profile requiring conformity eq true and completeness gte 0.98 yields FIT if both records are admitted and no contradictory admitted evidence exists. Changing the threshold to 0.995 yields NOT_FIT without changing the measurement. A successful-use record requires its own E6 definition; making that requirement advisory additionally requires E3.
 
 This example illustrates the semantics and is not a signed test vector or certification claim.
 
