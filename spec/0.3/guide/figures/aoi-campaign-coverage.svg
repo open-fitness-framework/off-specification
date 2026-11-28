@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 300" width="820" height="300" font-family="Helvetica, Arial, sans-serif">
+  <title>Valid leaf-on coverage of the area of interest per campaign in asset A</title>
+  <defs>
+    <pattern id="gap" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="8" height="8" fill="#f4f1ea"/>
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#b9a98a" stroke-width="3"/>
+    </pattern>
+  </defs>
+  <rect width="820" height="300" fill="#ffffff"/>
+  <text x="410" y="24" text-anchor="middle" font-size="15" fill="#222">Asset A: share of the area of interest covered by valid leaf-on pixels</text>
+
+  <!-- Panel 2019: 85 % (eastern strip missing) -->
+  <g transform="translate(30,45)">
+    <rect x="0" y="0" width="160" height="150" fill="url(#gap)"/>
+    <rect x="0" y="0" width="136" height="150" fill="#5f9e5a"/>
+    <rect x="0" y="0" width="160" height="150" fill="none" stroke="#222" stroke-width="2"/>
+    <text x="80" y="175" text-anchor="middle" font-size="14" fill="#222" font-weight="bold">July 2019</text>
+    <text x="80" y="195" text-anchor="middle" font-size="13" fill="#222">85.0 % valid</text>
+    <text x="80" y="215" text-anchor="middle" font-size="13" fill="#a33">✗ below 90 %, not qualifying</text>
+  </g>
+
+  <!-- Panel 2021: 96 % (small notch) -->
+  <g transform="translate(230,45)">
+    <rect x="0" y="0" width="160" height="150" fill="url(#gap)"/>
+    <path d="M0 0 H160 V150 H0 Z M124 0 H160 V27 H124 Z" fill="#5f9e5a" fill-rule="evenodd"/>
+    <rect x="0" y="0" width="160" height="150" fill="none" stroke="#222" stroke-width="2"/>
+    <text x="80" y="175" text-anchor="middle" font-size="14" fill="#222" font-weight="bold">June 2021</text>
+    <text x="80" y="195" text-anchor="middle" font-size="13" fill="#222">96.0 % valid</text>
+    <text x="80" y="215" text-anchor="middle" font-size="13" fill="#2a6a2a">✓ qualifying</text>
+  </g>
+
+  <!-- Panel 2023: 94 % (cloud patches) -->
+  <g transform="translate(430,45)">
+    <rect x="0" y="0" width="160" height="150" fill="#5f9e5a"/>
+    <ellipse cx="45" cy="40" rx="22" ry="14" fill="url(#gap)"/>
+    <ellipse cx="115" cy="110" rx="20" ry="15" fill="url(#gap)"/>
+    <ellipse cx="128" cy="35" rx="10" ry="8" fill="url(#gap)"/>
+    <rect x="0" y="0" width="160" height="150" fill="none" stroke="#222" stroke-width="2"/>
+    <text x="80" y="175" text-anchor="middle" font-size="14" fill="#222" font-weight="bold">August 2023</text>
+    <text x="80" y="195" text-anchor="middle" font-size="13" fill="#222">94.0 % valid</text>
+    <text x="80" y="215" text-anchor="middle" font-size="13" fill="#2a6a2a">✓ qualifying</text>
+  </g>
+
+  <!-- Panel 2025: 97.3 % -->
+  <g transform="translate(630,45)">
+    <rect x="0" y="0" width="160" height="150" fill="#5f9e5a"/>
+    <ellipse cx="60" cy="95" rx="18" ry="11" fill="url(#gap)"/>
+    <rect x="0" y="0" width="160" height="150" fill="none" stroke="#222" stroke-width="2"/>
+    <text x="80" y="175" text-anchor="middle" font-size="14" fill="#222" font-weight="bold">June 2025</text>
+    <text x="80" y="195" text-anchor="middle" font-size="13" fill="#222">97.3 % valid</text>
+    <text x="80" y="215" text-anchor="middle" font-size="13" fill="#2a6a2a">✓ qualifying, latest</text>
+  </g>
+
+  <!-- Legend -->
+  <g transform="translate(90,284)">
+    <rect x="0" y="-11" width="14" height="14" fill="#5f9e5a"/>
+    <text x="20" y="0" font-size="12" fill="#222">valid pixels</text>
+    <rect x="110" y="-11" width="14" height="14" fill="url(#gap)" stroke="#b9a98a"/>
+    <text x="130" y="0" font-size="12" fill="#222">no data, cloud or cloud shadow</text>
+    <text x="360" y="0" font-size="12" fill="#555">Box = AOI, 10.40–10.60 °E, 51.70–51.82 °N</text>
+  </g>
+</svg>

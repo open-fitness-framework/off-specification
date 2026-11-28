@@ -6,6 +6,8 @@ The Open Fitness Framework gives people and software agents a shared, verifiable
 
 📄 **Read the specification:** [Open Fitness Framework Specification, version 0.3 draft](/spec/0.3/open-fitness-framework-spec.md)
 
+🌲 **Prefer to see an example?** [Follow an agent as it selects aerial imagery for training a tree-vitality model](/spec/0.3/guide/tree-vitality-orthoimagery.md), step by step from profile to decision.
+
 > [!IMPORTANT]
 > This is a **working draft** (version 0.3), published for review and discussion. Its requirements are proposals, not an adopted community standard, and details will change before a 1.0 release.
 
@@ -49,7 +51,7 @@ Take a dataset of 1,000 building records in which 987 have a height value. An as
 - A profile for a purpose that needs at least 98% completeness evaluates the report as **FIT**.
 - A profile for a purpose that needs at least 99.5% completeness evaluates the same report as **NOT_FIT**.
 
-The measurement is made once and reused. Only the requirements differ, because they belong to the purpose, not to the data. (See [Section 15.2](open-fitness-framework-spec-v0.3.md#152-illustrative-example-and-companion-status) of the specification.)
+The measurement is made once and reused. Only the requirements differ, because they belong to the purpose, not to the data. (See [Section 15.2](spec/0.3/open-fitness-framework-spec.md#152-illustrative-example-and-companion-status) of the specification.)
 
 ## What the specification contributes
 
@@ -108,8 +110,8 @@ Anyone may implement OFF evaluators, catalogues, matchers or other aspects of th
 OFF is only useful if "conforms to OFF" means the same thing everywhere. To keep it that way, a conformance claim should:
 
 - **name the exact version** of the specification, for example "OFF 0.3 draft";
-- **name the roles** the implementation takes on: profile publisher, report issuer and/or evaluator (see [Section 2](open-fitness-framework-spec-v0.3.md#2-conformance-and-terminology) of the specification);
-- **list the optional extensions** it supports, by identifier (E1 to E9), since the specification requires implementations to state these;
+- **name the roles** the implementation takes on: profile publisher, report issuer and/or evaluator (see [Section 2](spec/0.3/open-fitness-framework-spec.md#2-conformance-and-terminology) of the specification);
+- **list the optional extensions** it supports, by identifier (E1 to E5), since the specification requires implementations to state these;
 - **be backed by the official conformance test suite** for that version.
 
 The conformance test suite is still being developed. Until it is published, please describe your software as *implementing* or *based on* a named draft version, rather than *conforming to* OFF.
