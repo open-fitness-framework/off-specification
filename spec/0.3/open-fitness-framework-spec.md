@@ -217,6 +217,8 @@ A typed value is a JSON object with `type`, `value` and, for `decimal` and `inte
 
 Decimal strings use `-?(0|[1-9][0-9]*)(\.[0-9]+)?`; integer strings use `0|-?[1-9][0-9]*`. Negative zero, leading plus signs, exponent notation, whitespace, NaN, and infinity are invalid. Trailing fractional zeroes are allowed and have no numerical effect. Comparisons MUST use exact decimal or integer arithmetic, with no binary floating-point tolerance and no display rounding. Types and units MUST match; the core does not perform unit conversion or integer-to-decimal coercion.
 
+Unit URIs SHOULD be taken from the QUDT unit vocabulary \[[18](#ref-18)\], for example `http://qudt.org/vocab/unit/M` for metres, `http://qudt.org/vocab/unit/YR` for years, `http://qudt.org/vocab/unit/NUM` for counts and `http://qudt.org/vocab/unit/UNITLESS` for ratios. Other absolute unit URIs MAY be used when QUDT has no suitable unit. A shared vocabulary helps profiles and reports agree on units; it does not relax exact unit identity.
+
 All timestamps MUST use valid UTC calendar timestamps in the form `YYYY-MM-DDTHH:MM:SSZ`, with seconds 00 through 59 and no fractional seconds. Durations are nonnegative integral seconds. The evaluation instant is an explicit input. There is no implicit clock-skew allowance. Missing, invalid, future, or inconsistent required times MUST be handled as specified in [Section 10](#10-deterministic-evaluation-procedure).
 
 ### 4.3 References and digests
@@ -302,12 +304,14 @@ A requirement’s criterion includes its threshold; it is distinct from the repo
   "expected": {
     "type": "decimal",
     "value": "0.98",
-    "unit": "https://www.open-fitness-framework.org/spec/0.3/units/one"
+    "unit": "http://qudt.org/vocab/unit/UNITLESS"
   }
 }
 ```
 
 The generic evaluator MUST support `eq`, `ne`, `lt`, `lte`, `gt`, and `gte` with the type restrictions in [Section 4.2](#42-values-and-timestamps). A condition using an operator that is invalid for its expected type makes the profile invalid. When a definition is supported, an expected value whose type or unit is incompatible with that definition also makes the profile invalid and MUST produce an evaluation error. A well-formed definition that the evaluator does not implement produces UNKNOWN for that requirement, with reason UNSUPPORTED_DEFINITION.
+
+**Informative.** A profile can restrict what is assessed either through scope ([Section 4.5](#45-scope-and-coverage)) or through definition parameters, such as an area of interest. Scope belongs to the whole request and therefore applies to every requirement. A parameter applies only to the requirement that carries it, so one profile can combine whole-asset evidence, such as ground resolution, with evidence about a particular area. Profile-specific parameters limit reuse: a record matches only if its parameters exactly equal the requirement's, so such evidence is usually produced for one profile. An assessor can produce matching records by copying a requirement's `statement` verbatim into its records. How assessments are requested is outside this specification.
 
 ### 5.3 Evidence constraints
 
@@ -499,6 +503,29 @@ Evidence may include validator output, sampling plans, calibration records, refe
 ### 7.1 Definition contract
 
 Each pinned definition declares its kind (`test` or `measurement`), immutable identity and version, parameter structure, the property or event assessed, its interpretation and its indeterminate cases. A test definition specifies when the criterion is satisfied and when it fails. A measurement definition specifies value type, unit, range, required details and coverage interpretation, and aligns to `dqv:Metric`. Semantically relevant dependencies MUST be immutable. Dimension/category annotations may reuse DQV but do not change matching or thresholds. Numeric metric types may be declared with `dqv:expectedDataType`. A definition’s semantic type is fixed: a criterion cannot silently become a measurement or vice versa.
+
+A definition is published as a JSON `AssertionDefinition` document. An `ArtifactRef` to a definition pins the bytes of this document.
+
+| Field              | Presence                          | Content                                                                                                                         |
+| ------------------ | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `specVersion`      | Required                          | `0.3-draft`.                                                                                                                    |
+| `type`             | Required                          | `AssertionDefinition`.                                                                                                          |
+| `id`               | Required                          | Definition identity (URI); equals the `id` of every `ArtifactRef` that pins this document.                                      |
+| `version`          | Required                          | Immutable version of this definition.                                                                                           |
+| `kind`             | Required                          | `test` or `measurement`.                                                                                                        |
+| `name`             | Required                          | Readable name.                                                                                                                  |
+| `assessedProperty` | Required                          | Description of the property or event assessed.                                                                                  |
+| `parameterSchema`  | Required                          | JSON Schema (draft 2020-12) object that `parameters` MUST satisfy. \[[11](#ref-11)\]                                          |
+| `interpretation`   | Required                          | For a test: when the criterion is satisfied and when it fails. For a measurement: how the value is determined, including coverage interpretation. |
+| `indeterminateCases` | Required                        | Array of descriptions of situations that yield `earl:cantTell`, `earl:inapplicable` or a measurement without a value.            |
+| `valueType`        | `measurement` only                | `boolean`, `decimal`, `integer`, `string` or `iri`.                                                                             |
+| `unit`             | `decimal` and `integer` only      | Unit URI that every value MUST carry.                                                                                           |
+| `range`            | Optional, `measurement` only      | Object with optional inclusive `minimum` and `maximum`, in the representation of `valueType`.                                   |
+| `requiredDetails`  | Optional                          | Object mapping each required `details` member name to its description.                                                          |
+| `dependencies`     | Optional                          | Array of `ArtifactRef`s to semantically relevant dependencies, such as class schemes or reference data formats.                 |
+| `dimension`        | Optional                          | DQV dimension URI; informational.                                                                                               |
+
+The generic evaluator checks `kind`, `parameterSchema`, `valueType`, `unit`, `range` and `requiredDetails` against records and requirements; the descriptive fields guide implementers of the definition. A record that violates these constraints is excluded with INVALID_VALUE or UNIT_MISMATCH. When the evaluator supports the definition, a requirement whose `parameters` violate `parameterSchema`, or whose expected value has the wrong type or unit, makes the profile invalid.
 
 The generic evaluator uses exact definition and parameter matching. It MUST NOT infer that two definitions, schemas, purposes, methods, or units are equivalent from similar names. Implementations MUST declare which definitions they understand. Domain plug-ins can implement further definitions, but downloading a definition MUST NOT execute code supplied by that resource.
 
@@ -698,7 +725,7 @@ FIT means that the declared requirements are supported within the specified admi
 | `errors`             | Required | Array of objects with machine-readable `code` and human-readable `message`.              |
 | `limitations`        | Required | Array of strings stating material bounds of the decision.                                |
 
-Each requirement result has the requirement `id`, its `outcome` (PASS, FAIL, UNKNOWN or CONFLICT), an `acceptedTrace` and an `excludedTrace`. Under extension [E3](#541-extension-e3-composition), advisory requirement results also carry `"advisory": true`. Each `acceptedTrace` entry has the `report` id, the local `assertion` id and the `predicate` result (PASS or FAIL). Each `excludedTrace` entry has the `report` id, the local `assertion` id where applicable, and a nonempty `reasons` array of reason codes. The request binds core inputs and any declared extensions. No separate portable acquisition bundle is required by the core.
+Each requirement result has the requirement `id`, its `outcome` (PASS, FAIL, UNKNOWN or CONFLICT), a nonempty `reasons` array of reason codes explaining the outcome (such as PREDICATE_SATISFIED, PREDICATE_VIOLATED, NO_ADMISSIBLE_EVIDENCE, CONFLICTING_EVIDENCE or UNSUPPORTED_DEFINITION), an `acceptedTrace` and an `excludedTrace`. Under extension [E3](#541-extension-e3-composition), advisory requirement results also carry `"advisory": true`. Each `acceptedTrace` entry has the `report` id, the local `assertion` id and the `predicate` result (PASS or FAIL). Each `excludedTrace` entry has the `report` id, the local `assertion` id where applicable, and a nonempty `reasons` array of reason codes. The request binds core inputs and any declared extensions. No separate portable acquisition bundle is required by the core.
 
 | Field or state               | Required behavior                                                                                                                                           |
 | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -805,7 +832,7 @@ Consider a synthetic snapshot of 1000 building records: height is present and no
 
 A core profile requiring conformity `eq` `true` and completeness `gte` 0.98 yields FIT if both records are admitted and no contradictory admitted evidence exists. Changing the threshold to 0.995 yields NOT_FIT without changing the measurement. A successful-use record requires its own definition ([Section 7.5](#75-successful-use-and-attestation-pattern)); making that requirement advisory requires extension [E3](#541-extension-e3-composition). [Appendix A](#appendix-a-worked-example-informative) shows the objects for this example.
 
-This example illustrates the semantics and is not a signed test vector or certification claim.
+This example illustrates the semantics and is not a signed test vector or certification claim. A longer, narrated end-to-end example, in which an agent selects orthoimagery for training a tree-vitality model, is given in the informative guide [Selecting orthoimagery for tree-vitality training data](guide/tree-vitality-orthoimagery.md).
 
 ## Appendix A Worked example (informative)
 
@@ -860,7 +887,7 @@ This appendix shows the objects of the [Section 15.2](#152-illustrative-example-
         "expected": {
           "type": "decimal",
           "value": "0.98",
-          "unit": "https://www.open-fitness-framework.org/spec/0.3/units/one"
+          "unit": "http://qudt.org/vocab/unit/UNITLESS"
         }
       },
       "evidence": { "maxAssessmentAgeSeconds": 31536000 }
@@ -944,7 +971,7 @@ The payload below is signed as described in [Section 8.1](#81-baseline-signature
           "value": {
             "type": "decimal",
             "value": "0.987",
-            "unit": "https://www.open-fitness-framework.org/spec/0.3/units/one"
+            "unit": "http://qudt.org/vocab/unit/UNITLESS"
           },
           "details": { "eligibleRecords": "1000", "presentRecords": "987" },
           "evidence": ["log"],
@@ -1062,6 +1089,7 @@ The assessment ended 26 days before `evaluatedAt`, within both the profile's one
     {
       "id": "schema",
       "outcome": "PASS",
+      "reasons": ["PREDICATE_SATISFIED"],
       "acceptedTrace": [
         { "report": "https://validator.example/reports/2026-0042", "assertion": "conformity", "predicate": "PASS" }
       ],
@@ -1070,6 +1098,7 @@ The assessment ended 26 days before `evaluatedAt`, within both the profile's one
     {
       "id": "height-completeness",
       "outcome": "PASS",
+      "reasons": ["PREDICATE_SATISFIED"],
       "acceptedTrace": [
         { "report": "https://validator.example/reports/2026-0042", "assertion": "heightCompleteness", "predicate": "PASS" }
       ],
@@ -1135,3 +1164,5 @@ The assessment ended 26 days before `evaluatedAt`, within both the profile's one
 <a id="ref-16"></a>\[16\] ISO. ISO 19157-1:2023 Geographic information — Data quality — Part 1 General requirements. <https://www.iso.org/standard/78900.html>
 
 <a id="ref-17"></a>\[17\] OSTrails. FAIR Testing Resource Vocabulary (FTR). Evolving community specification. <https://github.com/OSTrails/FAIR_testing_resource_vocabulary>
+
+<a id="ref-18"></a>\[18\] QUDT.org. QUDT Units Vocabulary. <https://qudt.org/vocab/unit/>
