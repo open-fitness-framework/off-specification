@@ -201,7 +201,7 @@ All identifier fields described as URIs MUST contain absolute URIs. HTTPS is REQ
 
 Local identifiers, such as requirement, record and evidence IDs, are unique within their containing object and match `[A-Za-z][A-Za-z0-9_-]*`.
 
-Parameter and assertion-details objects MUST contain only JSON values; any JSON numbers within them MUST be integers in the inclusive range from -9007199254740991 to 9007199254740991. Fractional or larger quantities MUST use definition-specified string representations. Parameter equality is equality of their RFC 8785 JSON Canonicalization Scheme representations. Object member order is insignificant; array order, strings, and explicit values remain significant. An omitted parameter and an explicitly supplied parameter are different unless the pinned definition specifies a normalization that both sides perform before publication. \[[3](#ref-3)\]
+Parameter and assertion-details objects MUST contain only JSON values; any JSON numbers within them MUST be integers in the inclusive range from -9007199254740991 to 9007199254740991, written in integer notation: they MUST match `-?(0|[1-9][0-9]*)` and MUST NOT be `-0`. Fractions, exponents and trailing fractional zeroes (`5.0`, `5e0`, `0.5e1`) are invalid even when their value is an integer. Fractional or larger quantities MUST use definition-specified string representations. Parameter equality is equality of their RFC 8785 JSON Canonicalization Scheme representations. Object member order is insignificant; array order, strings, and explicit values remain significant. An omitted parameter and an explicitly supplied parameter are different unless the pinned definition specifies a normalization that both sides perform before publication. \[[3](#ref-3)\]
 
 ### 4.2 Values and timestamps
 
@@ -219,7 +219,7 @@ Decimal strings use `-?(0|[1-9][0-9]*)(\.[0-9]+)?`; integer strings use `0|-?[1-
 
 Unit URIs SHOULD be taken from the QUDT unit vocabulary \[[18](#ref-18)\], for example `http://qudt.org/vocab/unit/M` for metres, `http://qudt.org/vocab/unit/YR` for years, `http://qudt.org/vocab/unit/NUM` for counts and `http://qudt.org/vocab/unit/UNITLESS` for ratios. Other absolute unit URIs MAY be used when QUDT has no suitable unit. A shared vocabulary helps profiles and reports agree on units; it does not relax exact unit identity.
 
-All timestamps MUST use valid UTC calendar timestamps in the form `YYYY-MM-DDTHH:MM:SSZ`, with seconds 00 through 59 and no fractional seconds. Durations are nonnegative integral seconds. The evaluation instant is an explicit input. There is no implicit clock-skew allowance. Missing, invalid, future, or inconsistent required times MUST be handled as specified in [Section 10](#10-deterministic-evaluation-procedure).
+All timestamps MUST use valid UTC calendar timestamps in the form `YYYY-MM-DDTHH:MM:SSZ`, with seconds 00 through 59 and no fractional seconds. Durations are nonnegative integral seconds, given as JSON numbers in integer notation (`0|[1-9][0-9]*`) up to 9007199254740991. The evaluation instant is an explicit input. There is no implicit clock-skew allowance. Missing, invalid, future, or inconsistent required times MUST be handled as specified in [Section 10](#10-deterministic-evaluation-procedure).
 
 ### 4.3 References and digests
 
