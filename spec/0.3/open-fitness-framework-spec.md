@@ -197,7 +197,7 @@ The compact JSON fields have the normative EARL and DQV interpretations in [Sect
 - `xsd` denotes [`http://www.w3.org/2001/XMLSchema#`](http://www.w3.org/2001/XMLSchema#)
 - `sdmx-attribute` denotes [`http://purl.org/linked-data/sdmx/2009/attribute#`](http://purl.org/linked-data/sdmx/2009/attribute#)
 
-All identifier fields described as URIs MUST contain absolute URIs. HTTPS is REQUIRED for report identifiers, issuer identifiers, key identifiers, evidence retrieval links, and status-list credential links in the baseline binding. IDs are compared as exact strings. Core processing MUST NOT apply case folding, percent-decoding equivalence, trailing-slash normalization, or inferred URL redirects to establish identity.
+All identifier fields described as URIs MUST contain absolute URIs. In this document, an absolute URI is an RFC 3986 `URI`, that is, a reference with a scheme; it MAY contain a fragment, and relative references are not allowed. HTTPS is REQUIRED for report identifiers, issuer identifiers, key identifiers, evidence retrieval links, and status-list credential links in the baseline binding. IDs are compared as exact strings. Core processing MUST NOT apply case folding, percent-decoding equivalence, trailing-slash normalization, or inferred URL redirects to establish identity.
 
 Local identifiers, such as requirement, record and evidence IDs, are unique within their containing object and match `[A-Za-z][A-Za-z0-9_-]*`.
 
