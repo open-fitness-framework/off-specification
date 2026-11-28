@@ -1000,15 +1000,6 @@ The decision is FIT *for this purpose, this snapshot, these reports, this trust 
 | Restricted evidence under `summary` access; confidential reference data | Step 7 |
 | Decisions as bounded, non-rewritten records | Steps 8 and 9 |
 
-### Spec changes this example led to
-
-Writing this example out in full exposed gaps in the 0.3 draft. They were fixed in the specification together with this guide:
-
-- **Units.** The draft gave no unit vocabulary. [Section 4.2](../open-fitness-framework-spec.md#42-values-and-timestamps) now recommends QUDT unit URIs.
-- **Definition documents.** The draft listed what a definition must declare, but no format. [Section 7.1](../open-fitness-framework-spec.md#71-definition-contract) now defines the `AssertionDefinition` fields used in Step 1.
-- **Scope versus parameters.** [Section 5.2](../open-fitness-framework-spec.md#52-requirements) now explains when to use parameters, why profile-specific parameters limit reuse, and how an assessor produces matching records.
-- **Reasons for requirement outcomes.** The first decision for asset A had no way to say *why* four requirements were UNKNOWN. Requirement results in [Section 11](../open-fitness-framework-spec.md#11-fitness-decisions) now carry a `reasons` array.
-
 ### Deliberately left out
 
 - **How agents find assets and reports, and how they request assessments.** Both are outside the OFF core.

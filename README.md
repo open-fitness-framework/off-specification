@@ -6,7 +6,7 @@ The Open Fitness Framework gives people and software agents a shared, verifiable
 
 📄 **Read the specification:** [Open Fitness Framework Specification, version 0.3 draft](/spec/0.3/open-fitness-framework-spec.md)
 
-🌲 **Prefer to see an example?** [Follow an agent as it selects aerial imagery for training a tree-vitality model](/spec/0.3/guide/tree-vitality-orthoimagery.md), step by step from profile to decision.
+🌲 **Prefer to see an example?** [Follow an agent as it selects aerial imagery for training a tree-vitality model](/spec/0.3/guide/tree-vitality-orthoimagery.md), step by step from profile to decision, or [watch a national INSPIRE coordinator check a road network](/spec/0.3/guide/inspire-road-network.md) for schema validity, topology and codelist values.
 
 > [!IMPORTANT]
 > This is a **working draft** (version 0.3), published for review and discussion. Its requirements are proposals, not an adopted community standard, and details will change before a 1.0 release.

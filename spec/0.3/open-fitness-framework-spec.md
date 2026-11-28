@@ -684,7 +684,7 @@ A source may provide several signatures over identical logical report content. A
 
 For each requirement, collect all records whose `definition` and `parameters` exactly match its `statement`. Check implemented semantics, issuer authorization for the definition, method, coverage (complete in the core; sampled only under extension [E1](#451-extension-e1-selection-scopes-and-sampled-coverage)), assessment age, record validity and `evidenceAccess`. For tests, compare the boolean value supplied by `earl:passed` (`true`) or `earl:failed` (`false`) to the condition. For completed measurements, compare the typed `value`. All other outcomes or execution statuses are nondecisive.
 
-Mismatching definition, method, scope, schema version, parameters or snapshot supplies no evidence for that requirement. No implicit compatibility is inferred. `earl:cantTell`, `earl:inapplicable` and `earl:untested` produce distinct trace reasons but no decisive value; they cannot turn an unmet mandatory requirement into a pass. Admission MUST consider all relevant reports, including negative ones.
+Mismatching definition, method, scope, schema version, parameters or snapshot supplies no evidence for that requirement. No implicit compatibility is inferred. A record whose `definition` equals the requirement's but whose `parameters` differ MUST be listed in that requirement's `excludedTrace` with reason PARAMETERS_MISMATCH, unless the record exactly matches another requirement of the same profile. A decision thereby distinguishes missing evidence from evidence about different parameters, without cross-listing records of profiles that reuse a definition with different parameters. `earl:cantTell`, `earl:inapplicable` and `earl:untested` produce distinct trace reasons but no decisive value; they cannot turn an unmet mandatory requirement into a pass. Admission MUST consider all relevant reports, including negative ones.
 
 Invalid signatures, untrusted issuers, stale evidence, failed executions and unavailable required evidence are evidence problems, not demonstrated asset defects. An authentic, applicable, admitted measurement below a minimum threshold establishes a negative requirement observation. Successful measurement execution alone never establishes threshold satisfaction.
 
@@ -807,6 +807,7 @@ Core cases are mandatory for core evaluators. Unless stated otherwise, the case 
 | Core: Validator crash                                                     | UNKNOWN with EXECUTION_ERROR                                      |
 | Core: Old snapshot or different representation                            | Exclude with SUBJECT_MISMATCH.                                    |
 | Core: Schema version differs                                              | No implicit schema compatibility; exclude.                        |
+| Core: Same definition, different parameters                               | Exclude with PARAMETERS_MISMATCH; no conflict.                    |
 | Core: Valid trusted pass and valid trusted fail                           | CONFLICT; NOT_ASSESSABLE.                                         |
 | Core: Valid trusted pass and invalidly signed fail                        | PASS; record rejection of the invalid report.                     |
 | Core: Only an untrusted issuer reports pass                               | UNKNOWN.                                                          |
@@ -832,7 +833,7 @@ Consider a synthetic snapshot of 1000 building records: height is present and no
 
 A core profile requiring conformity `eq` `true` and completeness `gte` 0.98 yields FIT if both records are admitted and no contradictory admitted evidence exists. Changing the threshold to 0.995 yields NOT_FIT without changing the measurement. A successful-use record requires its own definition ([Section 7.5](#75-successful-use-and-attestation-pattern)); making that requirement advisory requires extension [E3](#541-extension-e3-composition). [Appendix A](#appendix-a-worked-example-informative) shows the objects for this example.
 
-This example illustrates the semantics and is not a signed test vector or certification claim. A longer, narrated end-to-end example, in which an agent selects orthoimagery for training a tree-vitality model, is given in the informative guide [Selecting orthoimagery for tree-vitality training data](guide/tree-vitality-orthoimagery.md).
+This example illustrates the semantics and is not a signed test vector or certification claim. A longer, narrated end-to-end example, in which an agent selects orthoimagery for training a tree-vitality model, is given in the informative guide [Selecting orthoimagery for tree-vitality training data](guide/tree-vitality-orthoimagery.md). A second guide, [Checking INSPIRE conformity of a road network](guide/inspire-road-network.md), covers schema validity, network topology and codelist-controlled attributes.
 
 ## Appendix A Worked example (informative)
 
