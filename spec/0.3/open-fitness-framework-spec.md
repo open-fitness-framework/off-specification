@@ -187,7 +187,7 @@ This chapter describes requirements and objects that are shared across fitness p
 
 ### 4.1 JSON representation
 
-Core objects use UTF-8 JSON and the case-sensitive field names and `enum` values in this document. `specVersion` is `0.3-draft` throughout. Duplicate member names, non-finite numbers, invalid Unicode and malformed values MUST be rejected. `requiredExtensions` is optional and defaults to an empty array. Undeclared semantics MUST NOT affect evaluation. Definitions may require `details` fields, but these cannot introduce new core operators.
+Core objects use UTF-8 JSON and the case-sensitive field names and `enum` values in this document. `specVersion` is `0.3-draft` throughout. Duplicate member names, non-finite numbers, invalid Unicode and malformed values MUST be rejected. `requiredExtensions` is optional; it is omitted when no extensions are needed and, when present, MUST be a nonempty array without duplicate entries. Undeclared semantics MUST NOT affect evaluation. Definitions may require `details` fields, but these cannot introduce new core operators.
 
 The compact JSON fields have the normative EARL and DQV interpretations in [Section 6.3](#63-earl-assertions-and-dqv-measurements). Core processing does not require JSON-LD expansion. The JSON representation uses the following prefixes:
 
@@ -233,9 +233,9 @@ An asset binding identifies the snapshot a report is about and the snapshot a re
 
 | Field              | Presence | Content                                                                                                          |
 | ------------------ | -------- | ---------------------------------------------------------------------------------------------------------------- |
-| `assetId`          | Required | Identity of the logical asset; may be a resolvable catalogue URL.                                                |
-| `representationId` | Required | Identity of the representation assessed.                                                                         |
-| `snapshotId`       | Required | Identity of the immutable state; may include a version or timestamp, provided the digest also binds its content. |
+| `assetId`          | Required | Identity of the logical asset (absolute URI); may be a resolvable catalogue URL.                                 |
+| `representationId` | Required | Identity of the representation assessed (absolute URI).                                                          |
+| `snapshotId`       | Required | Identity of the immutable state (absolute URI); may include a version or timestamp, provided the digest also binds its content. |
 | `digestKind`       | Required | `content` for one object; `manifest` for a collection or snapshot.                                               |
 | `digest`           | Required | `digest` object as in [Section 4.3](#43-references-and-digests) over the content object or manifest.             |
 
@@ -275,7 +275,7 @@ A record with sampled coverage is admitted only when both the profile's and the 
 | `requirements`              | Nonempty array of requirements ([Section 5.2](#52-requirements)) with unique `id` values; all mandatory in the core. |
 | `requiredExtensions`        | Optional nonempty array when extensions are needed; otherwise omit.                                                |
 | `acceptance` and `advisory` | Extension [E3](#541-extension-e3-composition) only. Omit both in a core profile.                                   |
-| `classification`            | Optional informational metadata; may identify DQV dimensions/categories.                                           |
+| `classification`            | Optional informational metadata as a free JSON object ([Section 4.1](#41-json-representation) number rules apply); may identify DQV dimensions/categories. It does not affect evaluation. |
 
 The profile MUST identify its purpose explicitly. The request `purpose` MUST equal the profile's `purpose.id`. A purpose description helps a person select a profile, but has no executable semantics. The profile publisher is responsible for choosing requirements sufficient for its intended purpose. OFF evaluation establishes satisfaction of those requirements, rather than proving that an incomplete profile covers every possible operational risk.
 
@@ -430,7 +430,7 @@ All records in a report share its subject, scope, coverage and assessment; mater
 | `mode`           | Required | EARL mode token: `earl:automatic`, `earl:manual`, `earl:semiAuto`, `earl:undisclosed` or `earl:unknownMode`.          |
 | `method`         | Required | Pinned procedure (`ArtifactRef`), distinct from the criterion or metric definition.                                   |
 | `endedAt`        | Required | Completion or attempt time, including failed attempts.                                                                |
-| `tools`          | Required | Array of objects with tool `id` and `version`; may be empty for manual assessments.                                   |
+| `tools`          | Required | Array of objects with tool `id` (absolute URI) and `version` (nonempty string); may be empty for manual assessments. |
 | `startedAt`      | Optional | Start time of the assessment.                                                                                         |
 | `configuration`  | Optional | Pinned material configuration (`ArtifactRef`) used by the tools.                                                      |
 
@@ -458,13 +458,13 @@ Whatever `assertedBy` says, the signing issuer remains accountable for attributi
 
 | Record form                        | Required representation and interpretation                                                                                                                                                                                               |
 | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Test                               | `result.outcome` is exactly `earl:passed`, `earl:failed`, `earl:cantTell`, `earl:inapplicable` or `earl:untested`. No `executionStatus` or `value`. Optional `result.reason` distinguishes EXECUTION_ERROR and INCONCLUSIVE for `earl:cantTell`. |
+| Test                               | `result.outcome` is exactly `earl:passed`, `earl:failed`, `earl:cantTell`, `earl:inapplicable` or `earl:untested`. No `executionStatus` or `value`. Optional `result.reason` is allowed only with `earl:cantTell` and is exactly EXECUTION_ERROR or INCONCLUSIVE. |
 | Completed measurement              | `executionStatus` is `completed` and `value` is present. No EARL outcome is assigned merely because measurement succeeded.                                                                                                                 |
 | Measurement without a value        | `executionStatus` is `error`, `inconclusive`, `notExecuted` or `inapplicable`, and `value` is absent. This is an assessment attempt, not a completed DQV QualityMeasurement.                                                                |
 
 For a test, `earl:passed` and `earl:failed` state whether the named criterion is satisfied. The other EARL outcomes supply no decisive value. A crash is `earl:cantTell` with reason EXECUTION_ERROR, never `earl:failed`. `earl:inapplicable` does not waive a profile requirement; `earl:untested` does not mean failure. Numerical quality measurements have no intrinsic pass/fail threshold. \[[15](#ref-15)\]
 
-Every evidence reference MUST resolve within its report. Completed measurements MUST satisfy the metric’s type, unit, range, parameters and required details. Test outcomes MUST satisfy their criterion’s semantics. Inconsistent fields exclude the affected record; structural or signature invalidity excludes the report. Unknown definition semantics never authorize an inferred result.
+Every evidence reference MUST resolve within its report. Completed measurements MUST satisfy the metric’s type, unit, range, parameters and required details. Test outcomes MUST satisfy their criterion’s semantics. Inconsistent fields exclude the affected record; structural or signature invalidity excludes the report. A report excluded because its payload is structurally invalid is recorded with INVALID_VALUE, or with INVALID_TIME when the defect is a time field (for example `validUntil` not later than `validFrom`). Unknown definition semantics never authorize an inferred result.
 
 Free-text limitations are disclosed for review, but the generic evaluator does not interpret them. Any limitation that changes whether the assertion applies MUST also be represented by the binding, scope, coverage, parameters, status, or a defined machine-readable field. A producer MUST NOT hide a material qualification only in prose while presenting a stronger machine assertion.
 
@@ -491,7 +491,7 @@ JSON `boolean`, `decimal`, `integer`, `string` and `iri` values map respectively
 | `id`           | Required | Local identifier, unique within the report.                             |
 | `resource`     | Required | Pinned artifact (`ArtifactRef`).                                        |
 | `href`         | Required | HTTPS retrieval location; may differ from `resource.id`.                |
-| `mediaType`    | Required | Media type of the artifact.                                             |
+| `mediaType`    | Required | Media type of the artifact: `type/subtype` with optional parameters, in RFC 6838 / RFC 9110 syntax; no registry check. |
 | `role`         | Required | `log`, `result`, `reference`, `method` or `other`.                      |
 | `description`  | Optional | Human-readable description.                                             |
 
@@ -727,7 +727,7 @@ FIT means that the declared requirements are supported within the specified admi
 | `limitations`        | Required | Array of strings stating material bounds of the decision.                                |
 | `statusChecks`       | E4 only  | Array of credential-status checks (see below).                                           |
 
-Each requirement result has the requirement `id`, its `outcome` (PASS, FAIL, UNKNOWN or CONFLICT), a nonempty `reasons` array of reason codes explaining the outcome (such as PREDICATE_SATISFIED, PREDICATE_VIOLATED, NO_ADMISSIBLE_EVIDENCE, CONFLICTING_EVIDENCE or UNSUPPORTED_DEFINITION), an `acceptedTrace` and an `excludedTrace`. Under extension [E3](#541-extension-e3-composition), advisory requirement results also carry `"advisory": true`. Each `acceptedTrace` entry has the `report` id, the local `assertion` id and the `predicate` result (PASS or FAIL). Each `excludedTrace` entry has the `report` id, the local `assertion` id where applicable, and a nonempty `reasons` array of reason codes. Under extension [E4](#83-extension-e4-credential-status), `statusChecks` has one entry for every authenticated report that carries a status entry. Each entry has the `report` id, its `status` (`clear`, `revoked`, `suspended`, `unavailable` or `stale`), the `observedAt` time at which the evaluator retrieved the status list, and `statusList`, the pinned status-list credential bytes (`ArtifactRef`). `statusList` and `observedAt` are omitted only when the status is `unavailable`. The request binds core inputs and any declared extensions. No separate portable acquisition bundle is required by the core.
+Each requirement result has the requirement `id`, its `outcome` (PASS, FAIL, UNKNOWN or CONFLICT), a nonempty `reasons` array of reason codes explaining the outcome (such as PREDICATE_SATISFIED, PREDICATE_VIOLATED, NO_ADMISSIBLE_EVIDENCE, CONFLICTING_EVIDENCE or UNSUPPORTED_DEFINITION), an `acceptedTrace` and an `excludedTrace`. Under extension [E3](#541-extension-e3-composition), advisory requirement results also carry `"advisory": true`. Each `acceptedTrace` entry has the `report` id, the local `assertion` id and the `predicate` result (PASS or FAIL). Each `excludedTrace` entry has the `report` id, the local `assertion` id where applicable, and a nonempty `reasons` array of reason codes. Under extension [E4](#83-extension-e4-credential-status), `statusChecks` has one entry for every authenticated report that carries a status entry. Each entry has the `report` id, its `status` (`clear`, `revoked`, `suspended`, `unavailable` or `stale`), the `observedAt` time at which the evaluator retrieved the status list, and `statusList`, the pinned status-list credential bytes (`ArtifactRef`). `statusList` and `observedAt` are omitted only when the status is `unavailable`. The request binds core inputs and any declared extensions. A decision has no `requiredExtensions` of its own: extension members in it, such as `advisory` and `statusChecks`, are permitted exactly when the pinned request declares the corresponding extension. No separate portable acquisition bundle is required by the core.
 
 | Field or state               | Required behavior                                                                                                                                           |
 | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
