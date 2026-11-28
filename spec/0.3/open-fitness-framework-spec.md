@@ -419,6 +419,7 @@ The second `@context` entry is exactly the inline object below; the first is `ht
 | `assertions`         | Required | Nonempty array of test or measurement records ([Section 6.3](#63-earl-assertions-and-dqv-measurements)). |
 | `evidence`           | Required | Array of evidence items ([Section 6.4](#64-supporting-assessment-evidence)); may be empty. |
 | `requiredExtensions` | Optional | Present when the report uses extension semantics.                                         |
+| `corrects`           | Optional | `id` of an earlier report by the same issuer that this report corrects; informative ([Section 10.2](#102-authenticate-reports-and-check-identity)). |
 
 All records in a report share its subject, scope, coverage and assessment; materially different assessments require separate reports.
 
@@ -626,7 +627,7 @@ E4 adds two required trust policy fields:
 
 E4 evaluators obtain and authenticate the status-list credential, check its authorized issuer, validity, purpose and index, and evaluate the bit. Status lists use the [Section 8.1](#81-baseline-signature-binding) direct ES256 JWS format but the `BitstringStatusListCredential` payload model. Revoked or suspended reports are inadmissible (REVOKED, SUSPENDED). Unavailable, stale, invalid or unsupported status is unresolved and never treated as clear (STATUS_UNAVAILABLE, STALE_STATUS).
 
-The status list contains `validFrom` as its publication time and a later `validUntil`, and MUST be valid at `evaluatedAt`. The observation time is when the evaluator retrieved the list; it MUST NOT be later than `evaluatedAt`. Both `evaluatedAt` minus `validFrom` and `evaluatedAt` minus the observation time MUST NOT exceed `maxStatusAgeSeconds`. Fetching an old list today cannot make it fresh. The evaluator retains the list and its observation time; extension [E5](#91-extension-e5-portable-replay) packages them for portable replay.
+The status list contains `validFrom` as its publication time and a later `validUntil`, and MUST be valid at `evaluatedAt`. The observation time is when the evaluator retrieved the list; it MUST NOT be later than `evaluatedAt`. Both `evaluatedAt` minus `validFrom` and `evaluatedAt` minus the observation time MUST NOT exceed `maxStatusAgeSeconds`. Fetching an old list today cannot make it fresh. The evaluator retains the list and its observation time and records each check in the decision's `statusChecks` ([Section 11](#11-fitness-decisions)), so that a reader can see which list showed a report as clear, revoked or suspended, and when. Extension [E5](#91-extension-e5-portable-replay) additionally packages the list bytes for portable replay.
 
 When no credential status is used, decisions record in `limitations` that no revocation channel was checked. Expiry and assessment freshness still apply independently. Credential-status support is not a prerequisite for core conformance.
 
@@ -678,7 +679,7 @@ Apply status checks only under extension [E4](#83-extension-e4-credential-status
 
 The credential validity interval is half-open: `validFrom` is inclusive and `validUntil`, when present, is exclusive. Assessment freshness is calculated as `evaluatedAt` minus `assessment.endedAt` and is accepted when that nonnegative age is less than or equal to the effective maximum. Reissuing yesterday's assessment today does not make the assessment newer. Data acquisition age is a separate property and requires a separate assertion if the purpose depends on it.
 
-A source may provide several signatures over identical logical report content. After successful authentication, equivalent payloads with the same issuer and report `id` MAY be deduplicated using JCS equality. If the same issuer and report `id` identify different authenticated payloads, the evaluator MUST quarantine both variants with REPORT_ID_EQUIVOCATION. A forged or invalidly signed variant MUST NOT poison an otherwise valid report. A new correction MUST use a new report `id`.
+A source may provide several signatures over identical logical report content. After successful authentication, equivalent payloads with the same issuer and report `id` MAY be deduplicated using JCS equality. If the same issuer and report `id` identify different authenticated payloads, the evaluator MUST quarantine both variants with REPORT_ID_EQUIVOCATION. A forged or invalidly signed variant MUST NOT poison an otherwise valid report. A new correction MUST use a new report `id`. It MAY name the earlier report in `corrects`, which helps people connect the two. The link is informative: an evaluator MUST NOT exclude, rank or otherwise treat either report differently because of it. Withdrawing the earlier report requires revocation under extension [E4](#83-extension-e4-credential-status) or a new trust policy snapshot.
 
 ### 10.3 Select and admit records
 
@@ -724,8 +725,9 @@ FIT means that the declared requirements are supported within the specified admi
 | `requirementResults` | Required | Array of requirement results (see below).                                                |
 | `errors`             | Required | Array of objects with machine-readable `code` and human-readable `message`.              |
 | `limitations`        | Required | Array of strings stating material bounds of the decision.                                |
+| `statusChecks`       | E4 only  | Array of credential-status checks (see below).                                           |
 
-Each requirement result has the requirement `id`, its `outcome` (PASS, FAIL, UNKNOWN or CONFLICT), a nonempty `reasons` array of reason codes explaining the outcome (such as PREDICATE_SATISFIED, PREDICATE_VIOLATED, NO_ADMISSIBLE_EVIDENCE, CONFLICTING_EVIDENCE or UNSUPPORTED_DEFINITION), an `acceptedTrace` and an `excludedTrace`. Under extension [E3](#541-extension-e3-composition), advisory requirement results also carry `"advisory": true`. Each `acceptedTrace` entry has the `report` id, the local `assertion` id and the `predicate` result (PASS or FAIL). Each `excludedTrace` entry has the `report` id, the local `assertion` id where applicable, and a nonempty `reasons` array of reason codes. The request binds core inputs and any declared extensions. No separate portable acquisition bundle is required by the core.
+Each requirement result has the requirement `id`, its `outcome` (PASS, FAIL, UNKNOWN or CONFLICT), a nonempty `reasons` array of reason codes explaining the outcome (such as PREDICATE_SATISFIED, PREDICATE_VIOLATED, NO_ADMISSIBLE_EVIDENCE, CONFLICTING_EVIDENCE or UNSUPPORTED_DEFINITION), an `acceptedTrace` and an `excludedTrace`. Under extension [E3](#541-extension-e3-composition), advisory requirement results also carry `"advisory": true`. Each `acceptedTrace` entry has the `report` id, the local `assertion` id and the `predicate` result (PASS or FAIL). Each `excludedTrace` entry has the `report` id, the local `assertion` id where applicable, and a nonempty `reasons` array of reason codes. Under extension [E4](#83-extension-e4-credential-status), `statusChecks` has one entry for every authenticated report that carries a status entry. Each entry has the `report` id, its `status` (`clear`, `revoked`, `suspended`, `unavailable` or `stale`), the `observedAt` time at which the evaluator retrieved the status list, and `statusList`, the pinned status-list credential bytes (`ArtifactRef`). `statusList` and `observedAt` are omitted only when the status is `unavailable`. The request binds core inputs and any declared extensions. No separate portable acquisition bundle is required by the core.
 
 | Field or state               | Required behavior                                                                                                                                           |
 | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -824,8 +826,10 @@ Core cases are mandatory for core evaluators. Unless stated otherwise, the case 
 | Core: completed measurement without EARL outcome                          | Compare value to threshold; success of measurement is not a pass. |
 | Core: unsupported extension in profile or policy                          | Evaluation error, result null; UNSUPPORTED_EXTENSION.             |
 | Core: measurement execution failure                                       | UNKNOWN; do not emit a zero-valued DQV measurement.               |
+| Core: Report names an earlier report in `corrects`                        | Both reports are evaluated on their own; the link excludes neither. |
 | E3: Acceptance reference to an undefined requirement                      | Evaluation error; result null.                                    |
 | E3: Advisory requirement FAIL, all acceptance requirements PASS           | FIT; advisory result reported as FAIL.                            |
+| E4: Report revoked after an earlier decision                              | Exclude with REVOKED; `statusChecks` records the list and observation time. |
 
 ### 15.2 Illustrative example and companion status
 
@@ -833,7 +837,7 @@ Consider a synthetic snapshot of 1000 building records: height is present and no
 
 A core profile requiring conformity `eq` `true` and completeness `gte` 0.98 yields FIT if both records are admitted and no contradictory admitted evidence exists. Changing the threshold to 0.995 yields NOT_FIT without changing the measurement. A successful-use record requires its own definition ([Section 7.5](#75-successful-use-and-attestation-pattern)); making that requirement advisory requires extension [E3](#541-extension-e3-composition). [Appendix A](#appendix-a-worked-example-informative) shows the objects for this example.
 
-This example illustrates the semantics and is not a signed test vector or certification claim. A longer, narrated end-to-end example, in which an agent selects orthoimagery for training a tree-vitality model, is given in the informative guide [Selecting orthoimagery for tree-vitality training data](guide/tree-vitality-orthoimagery.md). A second guide, [Checking INSPIRE conformity of a road network](guide/inspire-road-network.md), covers schema validity, network topology and codelist-controlled attributes.
+This example illustrates the semantics and is not a signed test vector or certification claim. A longer, narrated end-to-end example, in which an agent selects orthoimagery for training a tree-vitality model, is given in the informative guide [Selecting orthoimagery for tree-vitality training data](guide/tree-vitality-orthoimagery.md). A second guide, [Checking INSPIRE conformity of a road network](guide/inspire-road-network.md), covers schema validity, network topology and codelist-controlled attributes. A third guide, [Checking clinical trial data before an FDA submission](guide/clinical-trial-submission.md), uses structured data and shows conflicting evidence, revocation, sampled coverage and retrievable evidence.
 
 ## Appendix A Worked example (informative)
 
