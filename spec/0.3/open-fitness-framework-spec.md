@@ -189,6 +189,8 @@ This chapter describes requirements and objects that are shared across fitness p
 
 Core objects use UTF-8 JSON and the case-sensitive field names and `enum` values in this document. `specVersion` is `0.3-draft` throughout. Duplicate member names, non-finite numbers, invalid Unicode and malformed values MUST be rejected. `requiredExtensions` is optional and defaults to an empty array. Undeclared semantics MUST NOT affect evaluation. Definitions may require `details` fields, but these cannot introduce new core operators.
 
+Objects defined by this specification MUST NOT contain members other than those specified for them. Exceptions are members this specification declares as free JSON, such as `parameters`, `details` and a definition's `parameterSchema`, and members added by an extension that the object declares in `requiredExtensions`. An object with an undefined member is malformed. The report credential payload MUST NOT contain members other than those listed in [Section 6.1](#61-credential-structure).
+
 The compact JSON fields have the normative EARL and DQV interpretations in [Section 6.3](#63-earl-assertions-and-dqv-measurements). Core processing does not require JSON-LD expansion. The JSON representation uses the following prefixes:
 
 - `earl` denotes [`http://www.w3.org/ns/earl#`](http://www.w3.org/ns/earl#)
