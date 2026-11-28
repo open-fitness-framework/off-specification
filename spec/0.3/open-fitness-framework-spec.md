@@ -213,7 +213,9 @@ A typed value is a JSON object with `type`, `value` and, for `decimal` and `inte
 | `decimal` | Decimal string plus absolute `unit` URI; `eq`, `ne`, `lt`, `lte`, `gt`, `gte`. |
 | `integer` | Integer string plus absolute `unit` URI; `eq`, `ne`, `lt`, `lte`, `gt`, `gte`. |
 | `string`  | JSON string; `eq` and `ne` using exact string equality.           |
-| `iri`     | Absolute URI string; `eq` and `ne` using exact string equality.   |
+| `iri`     | Absolute URI string (RFC 3986, see [Section 4.1](#41-json-representation)); `eq` and `ne` using exact string equality. |
+
+Despite its name, an `iri` value is an absolute URI as defined in [Section 4.1](#41-json-representation), not an RFC 3987 IRI: it contains only ASCII characters, and non-ASCII characters MUST be percent-encoded (or, in host names, IDNA-encoded) before publication. No IRI-to-URI mapping or other normalization is applied before comparison.
 
 Decimal strings use `-?(0|[1-9][0-9]*)(\.[0-9]+)?`; integer strings use `0|-?[1-9][0-9]*`. Negative zero, leading plus signs, exponent notation, whitespace, NaN, and infinity are invalid. Trailing fractional zeroes are allowed and have no numerical effect. Comparisons MUST use exact decimal or integer arithmetic, with no binary floating-point tolerance and no display rounding. Types and units MUST match; the core does not perform unit conversion or integer-to-decimal coercion.
 
